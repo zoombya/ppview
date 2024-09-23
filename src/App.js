@@ -39,7 +39,9 @@ function App() {
     }
 
     // Get trajectory file
-    const trajectoryFile = files.find((file) => file.name === 'traj.dat');
+    const trajectoryFile = files.find((file) => file.name.includes('traj') || 
+                                                file.name.includes('conf') ||
+                                                file.name.includes('last'));
     if (trajectoryFile) {
       setTrajFile(trajectoryFile);
     } else {
