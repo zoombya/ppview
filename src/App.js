@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as THREE from 'three';
 import FileDropZone from './components/FileDropZone';
 import ParticleScene from './components/ParticleScene';
@@ -7,7 +7,9 @@ import './styles.css';
 
 function App() {
   const [positions, setPositions] = useState([]);
-  const [currentBoxSize, setCurrentBoxSize] = useState([34.199520111084, 34.199520111084, 34.199520111084]); // Updated default value based on example
+  const [currentBoxSize, setCurrentBoxSize] = useState([
+    34.199520111084, 34.199520111084, 34.199520111084,
+  ]);
   const [topData, setTopData] = useState(null);
 
   const [trajFile, setTrajFile] = useState(null);
@@ -39,13 +41,16 @@ function App() {
     }
 
     // Get trajectory file
-    const trajectoryFile = files.find((file) => file.name.includes('traj') || 
-                                                file.name.includes('conf') ||
-                                                file.name.includes('last'));
+    const trajectoryFile = files.find(
+      (file) =>
+        file.name.includes('traj') ||
+        file.name.includes('conf') ||
+        file.name.includes('last')
+    );
     if (trajectoryFile) {
       setTrajFile(trajectoryFile);
     } else {
-      alert('Trajectory file (traj.dat) is missing!');
+      alert('Trajectory file (e.g., traj.dat) is missing!');
       return;
     }
 
@@ -108,7 +113,8 @@ function App() {
     }
 
     const start = index[configNumber];
-    const end = configNumber + 1 < index.length ? index[configNumber + 1] : file.size;
+    const end =
+      configNumber + 1 < index.length ? index[configNumber + 1] : file.size;
     const slice = file.slice(start, end);
 
     const content = await slice.text();
@@ -117,11 +123,17 @@ function App() {
     const config = parseConfiguration(lines);
     if (config) {
       // Apply periodic boundaries
-      const adjustedPositions = applyPeriodicBoundary(config.positions, config.boxSize);
+      const adjustedPositions = applyPeriodicBoundary(
+        config.positions,
+        config.boxSize
+      );
 
       // Associate particle types and compute rotation matrices
       const positionsWithTypes = adjustedPositions.map((pos, index) => {
-        const { typeIndex, particleType } = getParticleType(index, topData.particleTypes);
+        const { typeIndex, particleType } = getParticleType(
+          index,
+          topData.particleTypes
+        );
 
         let rotationMatrix = null;
         if (pos.a1 && pos.a3) {
@@ -135,9 +147,15 @@ function App() {
 
           // Create the rotation matrix
           const matrix = new THREE.Matrix3().set(
-            a1.x, a2.x, a3.x,
-            a1.y, a2.y, a3.y,
-            a1.z, a2.z, a3.z
+            a1.x,
+            a2.x,
+            a3.x,
+            a1.y,
+            a2.y,
+            a3.y,
+            a1.z,
+            a2.z,
+            a3.z
           );
 
           // Store matrix elements
@@ -175,11 +193,17 @@ function App() {
 
     const bLine = lines[i++].trim();
     const bTokens = bLine.split('=');
-    const boxSize = bTokens[1].trim().split(/\s+/).map(Number);
+    const boxSize = bTokens[1]
+      .trim()
+      .split(/\s+/)
+      .map(Number);
 
     const eLine = lines[i++].trim();
     const energyTokens = eLine.split('=');
-    const energy = energyTokens[1].trim().split(/\s+/).map(Number);
+    const energy = energyTokens[1]
+      .trim()
+      .split(/\s+/)
+      .map(Number);
 
     const positions = [];
     while (i < lines.length) {
@@ -212,9 +236,24 @@ function App() {
     };
   };
 
-  // Function to parse the .top file
+  // Function to parse the .top file (supports both Lorenzo's and Flavio's formats)
   const parseTopFile = async (content, fileMap) => {
     const lines = content.trim().split('\n');
+
+    // Determine if the format is Flavio's or Lorenzo's based on header and content
+    let isFlavioFormat = !lines[1].includes('.');
+
+    if (isFlavioFormat) {
+      // Parse Flavio's topology
+      return await parseFlavioTopology(content, fileMap);
+    } else {
+      // Parse Lorenzo's topology
+      return await parseLorenzoTopology(lines, fileMap);
+    }
+  };
+
+  // Function to parse Lorenzo's topology
+  const parseLorenzoTopology = async (lines, fileMap) => {
     const headerTokens = lines[0].trim().split(/\s+/).map(Number);
     const totalParticles = headerTokens[0];
     const typeCount = headerTokens[1];
@@ -255,7 +294,9 @@ function App() {
           particleType.patchPositions = patchPositions;
           patchFileCache.set(fileName, patchPositions);
         } else {
-          console.warn(`Patch file '${fileName}' not found for particle type ${i}`);
+          console.warn(
+            `Patch file '${fileName}' not found for particle type ${i}`
+          );
           console.log('Available files:', Array.from(fileMap.keys()));
         }
       }
@@ -266,7 +307,166 @@ function App() {
     return { totalParticles, typeCount, particleTypes };
   };
 
-  // Function to parse patch files
+  // Function to parse Flavio's topology
+  const parseFlavioTopology = async (content, fileMap) => {
+    const lines = content.trim().split('\n');
+    const headerTokens = lines[0].trim().split(/\s+/).map(Number);
+    const totalParticles = headerTokens[0];
+    const typeCount = headerTokens[1];
+
+    // Second line contains particle types per particle
+    const typeLine = lines[1].trim();
+    const particleTypesList = typeLine.split(/\s+/).map(Number);
+
+    // Build particle types and counts
+    const particleTypes = [];
+    const typeCounts = {};
+
+    particleTypesList.forEach((typeIndex) => {
+      if (!typeCounts[typeIndex]) {
+        typeCounts[typeIndex] = 0;
+      }
+      typeCounts[typeIndex]++;
+    });
+
+    let particlesData = null;
+    let patchesData = null;
+
+    // Check for particles.txt file
+    const particleTxtFile = fileMap.get('particles.txt');
+    if (particleTxtFile) {
+      const particleTxtContent = await particleTxtFile.text();
+      particlesData = parseParticleTxt(particleTxtContent);
+    } else {
+      console.warn('particles.txt file is missing for Flavio format.');
+      // Proceed without particlesData
+    }
+
+    // Check for patches.txt file
+    const patchesTxtFile = fileMap.get('patches.txt');
+    if (patchesTxtFile) {
+      const patchesTxtContent = await patchesTxtFile.text();
+      patchesData = parsePatchesTxt(patchesTxtContent);
+    } else {
+      console.warn('patches.txt file is missing for Flavio format.');
+      // Proceed without patchesData
+    }
+
+    // Build particle types array
+    Object.keys(typeCounts).forEach((typeIndex) => {
+      const count = typeCounts[typeIndex];
+      let patches = [];
+      let patchPositions = [];
+
+      if (particlesData && patchesData) {
+        const particlesOfType = particlesData.filter(
+          (p) => p.type === Number(typeIndex)
+        );
+
+        // Collect patches associated with this type
+        particlesOfType.forEach((p) => {
+          patches.push(...p.patches);
+        });
+
+        patchPositions = patches
+          .map((patchId) => patchesData[patchId]?.position)
+          .filter(Boolean);
+      }
+
+      particleTypes.push({
+        count,
+        typeIndex: Number(typeIndex),
+        patches,
+        patchPositions,
+      });
+    });
+
+    return { totalParticles, typeCount, particleTypes };
+  };
+
+  // Function to parse particle.txt
+  const parseParticleTxt = (content) => {
+    const lines = content.trim().split('\n');
+    const particlesData = [];
+
+    let currentParticle = null;
+
+    lines.forEach((line) => {
+      line = line.trim();
+      if (line.startsWith('particle_')) {
+        if (currentParticle) {
+          particlesData.push(currentParticle);
+        }
+        currentParticle = { patches: [] };
+      } else if (line.startsWith('type =')) {
+        currentParticle.type = Number(line.split('=')[1].trim());
+      } else if (line.startsWith('patches =')) {
+        const patchesStr = line.split('=')[1].trim();
+        currentParticle.patches = patchesStr.split(',').map(Number);
+      }
+    });
+
+    if (currentParticle) {
+      particlesData.push(currentParticle);
+    }
+
+    return particlesData;
+  };
+
+  // Function to parse patches.txt
+  const parsePatchesTxt = (content) => {
+    const lines = content.trim().split('\n');
+    const patchesData = {};
+
+    let currentPatch = null;
+    lines.forEach((line) => {
+      line = line.trim();
+      if (line.startsWith('patch_')) {
+        if (currentPatch) {
+          patchesData[currentPatch.id] = currentPatch;
+        }
+        currentPatch = {};
+      } else if (line.startsWith('id =')) {
+        currentPatch.id = Number(line.split('=')[1].trim());
+      } else if (line.startsWith('position =')) {
+        const positionStr = line.split('=')[1].trim();
+        const [x, y, z] = positionStr.split(',').map(Number);
+        currentPatch.position = { x, y, z };
+      } else if (line.startsWith('a1 =')) {
+        const a1Str = line.split('=')[1].trim();
+        const [x, y, z] = a1Str.split(',').map(Number);
+        currentPatch.a1 = { x, y, z };
+      } else if (line.startsWith('a2 =')) {
+        const a2Str = line.split('=')[1].trim();
+        const [x, y, z] = a2Str.split(',').map(Number);
+        currentPatch.a2 = { x, y, z };
+      }
+    });
+
+    if (currentPatch) {
+      patchesData[currentPatch.id] = currentPatch;
+    }
+
+    return patchesData;
+  };
+
+  // Function to get particle type based on index
+  const getParticleType = (particleIndex, particleTypes) => {
+    let cumulativeCount = 0;
+    for (let i = 0; i < particleTypes.length; i++) {
+      cumulativeCount += particleTypes[i].count;
+      if (particleIndex < cumulativeCount) {
+        return { typeIndex: i, particleType: particleTypes[i] };
+      }
+    }
+    // Default to the last type if not found
+    return {
+      typeIndex: particleTypes.length - 1,
+      particleType: particleTypes[particleTypes.length - 1],
+    };
+  };
+
+  // Function to parse patch files (for Lorenzo's format)
   const parsePatchFile = (content) => {
     const lines = content.trim().split('\n');
     const positions = lines.map((line) => {
@@ -275,16 +475,6 @@ function App() {
       return { x, y, z };
     });
     return positions;
-  };
-
-  // Helper function to determine particle type based on index
-  const getParticleType = (particleIndex, particleTypes) => {
-    for (let i = 0; i < particleTypes.length; i++) {
-      if (particleIndex < particleTypes[i].cumulativeCount) {
-        return { typeIndex: i, particleType: particleTypes[i] };
-      }
-    }
-    return { typeIndex: -1, particleType: null };
   };
 
   // Helper function to apply periodic boundary conditions
