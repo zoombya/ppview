@@ -18,6 +18,7 @@ function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [currentEnergy, setCurrentEnergy] = useState([]);
   const [totalConfigs, setTotalConfigs] = useState(0);
+  const [showPatchLegend, setShowPatchLegend] = useState(false);
 
   const handleFilesReceived = async (files) => {
     const fileMap = new Map();
@@ -515,9 +516,19 @@ function App() {
             Configuration: {currentConfigIndex + 1} / {totalConfigs}
           </div>
           <div>Time: {currentTime.toLocaleString()}</div>
+          {/* Add the checkbox to toggle Patch legend */}
+          <label className="legend-toggle">
+            <input
+              type="checkbox"
+              checked={showPatchLegend}
+              onChange={(e) => setShowPatchLegend(e.target.checked)}
+            />
+            Show Patch Legend
+          </label>
         </div>
       )}
-      {topData && (
+      {/* Conditionally render the PatchLegend component */}
+      {topData && showPatchLegend && (
         <PatchLegend
           patchIDs={topData.particleTypes.flatMap((type) => type.patches)}
         />
