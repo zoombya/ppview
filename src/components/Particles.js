@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
 import Patches from './Patches';
+import { mutedParticleColors } from '../colors';
 
 function Particles({ positions, boxSize }) {
   const meshRef = useRef();
@@ -16,21 +17,6 @@ function Particles({ positions, boxSize }) {
     []
   );
 
-// Muted color palette for particles
-const mutedParticleColors = [
-  '#8B0000', // Dark Red for Particle Type 0
-  '#2F4F4F', // Dark Slate Gray for Particle Type 1
-  '#556B2F', // Dark Olive Green for Particle Type 2
-  '#9932CC', // Dark Orchid for Particle Type 3
-  '#8B008B', // Dark Magenta for Particle Type 4
-  '#FF4500', // Orange Red for Particle Type 5
-  '#00CED1', // Dark Turquoise for Particle Type 6
-  '#9400D3', // Dark Violet for Particle Type 7
-  '#FF1493', // Deep Pink for Particle Type 8
-  '#1E90FF', // Dodger Blue for Particle Type 9
-  // Add more muted colors as needed
-];
-  
   // Create colors array for the particles
   const colors = useMemo(() => {
 

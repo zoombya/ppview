@@ -1,10 +1,10 @@
-// src/App.js
-
 import React, { useState, useEffect } from 'react';
 import * as THREE from 'three';
 import FileDropZone from './components/FileDropZone';
 import ParticleScene from './components/ParticleScene';
-import PatchLegend from './components/PatchLegend'; // Optional: For displaying color legend
+import PatchLegend from './components/PatchLegend'; 
+import ParticleLegend from './components/ParticleLegend'; 
+
 import './styles.css';
 
 function App() {
@@ -27,6 +27,7 @@ function App() {
   const [showPatchLegend, setShowPatchLegend] = useState(false);
   const [filesDropped, setFilesDropped] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [showParticleLegend, setShowParticleLegend] = useState(false);
 
   const handleFilesReceived = async (files) => {
     if (!files || files.length === 0) {
@@ -281,60 +282,61 @@ function App() {
     }
   };
 
-  // Function to parse Lorenzo's topology
-  const parseLorenzoTopology = async (lines, fileMap) => {
-    const headerTokens = lines[0].trim().split(/\s+/).map(Number);
-    const totalParticles = headerTokens[0];
-    const typeCount = headerTokens[1];
-    const particleTypes = [];
+// Function to parse Lorenzo's topology
+const parseLorenzoTopology = async (lines, fileMap) => {
+  const headerTokens = lines[0].trim().split(/\s+/).map(Number);
+  const totalParticles = headerTokens[0];
+  const typeCount = headerTokens[1];
+  const particleTypes = [];
 
-    let cumulativeCount = 0;
-    const patchFileCache = new Map();
+  let cumulativeCount = 0;
+  const patchFileCache = new Map();
 
-    for (let i = 1; i <= typeCount; i++) {
-      const line = lines[i];
-      const tokens = line.trim().split(/\s+/);
-      const count = Number(tokens[0]);
-      const patchCount = Number(tokens[1]);
-      const patches = tokens[2] ? tokens[2].split(',').map(Number) : [];
-      const fileName = tokens[3] ? tokens[3].trim() : '';
-      cumulativeCount += count;
+  for (let i = 1; i <= typeCount; i++) {
+    const line = lines[i];
+    const tokens = line.trim().split(/\s+/);
+    const count = Number(tokens[0]);
+    const patchCount = Number(tokens[1]);
+    const patches = tokens[2] ? tokens[2].split(',').map(Number) : [];
+    const fileName = tokens[3] ? tokens[3].trim() : '';
+    cumulativeCount += count;
 
-      const particleType = {
-        count: count,
-        cumulativeCount: cumulativeCount,
-        patchCount: patchCount,
-        patches: patches,
-        fileName,
-        patchPositions: [],
-      };
+    const particleType = {
+      typeIndex: i - 1, // Assign typeIndex starting from 0
+      count: count,
+      cumulativeCount: cumulativeCount,
+      patchCount: patchCount,
+      patches: patches,
+      fileName,
+      patchPositions: [],
+    };
 
-      console.log(`Processing particle type ${i}:`, particleType);
+    console.log(`Processing particle type ${i}:`, particleType);
 
-      // Read the patch file if provided
-      if (fileName) {
-        if (patchFileCache.has(fileName)) {
-          // Use cached patch positions
-          particleType.patchPositions = patchFileCache.get(fileName);
-        } else if (fileMap.has(fileName)) {
-          const patchFile = fileMap.get(fileName);
-          const patchContent = await patchFile.text();
-          const patchPositions = parsePatchFile(patchContent);
-          particleType.patchPositions = patchPositions;
-          patchFileCache.set(fileName, patchPositions);
-        } else {
-          console.warn(
-            `Patch file '${fileName}' not found for particle type ${i}`
-          );
-          console.log('Available files:', Array.from(fileMap.keys()));
-        }
+    // Read the patch file if provided
+    if (fileName) {
+      if (patchFileCache.has(fileName)) {
+        // Use cached patch positions
+        particleType.patchPositions = patchFileCache.get(fileName);
+      } else if (fileMap.has(fileName)) {
+        const patchFile = fileMap.get(fileName);
+        const patchContent = await patchFile.text();
+        const patchPositions = parsePatchFile(patchContent);
+        particleType.patchPositions = patchPositions;
+        patchFileCache.set(fileName, patchPositions);
+      } else {
+        console.warn(
+          `Patch file '${fileName}' not found for particle type ${i}`
+        );
+        console.log('Available files:', Array.from(fileMap.keys()));
       }
-
-      particleTypes.push(particleType);
     }
 
-    return { totalParticles, typeCount, particleTypes };
-  };
+    particleTypes.push(particleType);
+  }
+
+  return { totalParticles, typeCount, particleTypes };
+};
 
   // Function to parse Flavio's topology
   const parseFlavioTopology = async (content, fileMap) => {
@@ -479,21 +481,27 @@ function App() {
     return patchesData;
   };
 
+
   // Function to get particle type based on index
   const getParticleType = (particleIndex, particleTypes) => {
     let cumulativeCount = 0;
     for (let i = 0; i < particleTypes.length; i++) {
       cumulativeCount += particleTypes[i].count;
       if (particleIndex < cumulativeCount) {
-        return { typeIndex: i, particleType: particleTypes[i] };
+        return {
+          typeIndex: particleTypes[i].typeIndex, // Use the assigned typeIndex
+          particleType: particleTypes[i],
+        };
       }
     }
-    // Default to the last type if not found
-    return {
-      typeIndex: particleTypes.length - 1,
-      particleType: particleTypes[particleTypes.length - 1],
-    };
+    
+  // Default to the last type if not found
+  const lastType = particleTypes[particleTypes.length - 1];
+  return {
+    typeIndex: lastType.typeIndex,
+    particleType: lastType,
   };
+};
 
   // Function to parse patch files (for Lorenzo's format)
   const parsePatchFile = (content) => {
@@ -524,6 +532,7 @@ function App() {
     setCurrentConfigIndex(newIndex);
   };
 
+
   return (
     <div className="App">
       {!filesDropped && (
@@ -545,7 +554,7 @@ function App() {
             Configuration: {currentConfigIndex + 1} / {totalConfigs}
           </div>
           <div>Time: {currentTime.toLocaleString()}</div>
-          {/* Add the checkbox to toggle Patch legend */}
+          {/* Checkbox to toggle Patch legend */}
           <label className="legend-toggle">
             <input
               type="checkbox"
@@ -554,6 +563,15 @@ function App() {
             />
             Show Patch Legend
           </label>
+          {/* Checkbox to toggle Particle legend */}
+          <label className="legend-toggle">
+            <input
+              type="checkbox"
+              checked={showParticleLegend}
+              onChange={(e) => setShowParticleLegend(e.target.checked)}
+            />
+            Show Particle Legend
+          </label>
         </div>
       )}
       {/* Conditionally render the PatchLegend component */}
@@ -561,6 +579,10 @@ function App() {
         <PatchLegend
           patchIDs={topData.particleTypes.flatMap((type) => type.patches)}
         />
+      )}
+      {/* Conditionally render the ParticleLegend component */}
+      {topData && showParticleLegend && !isLoading && (
+        <ParticleLegend particleTypes={topData.particleTypes} />
       )}
       {isLoading && (
         <div className="loading-overlay">

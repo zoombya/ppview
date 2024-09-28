@@ -70,7 +70,43 @@ canvas {
   margin-right: 5px;
 }
 
-/* Optional: Style for the PatchLegend component */
+/* Particle Legend styles */
+.particle-legend {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 200px;
+}
+
+.particle-legend h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.particle-legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.particle-legend li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.particle-legend .color-box {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border: 1px solid #000;
+}
+
+/* Adjust the PatchLegend position to avoid overlap */
 .patch-legend {
   position: absolute;
   top: 20px;
@@ -79,6 +115,7 @@ canvas {
   background-color: rgba(255, 255, 255, 0.8);
   padding: 10px;
   border-radius: 5px;
+  max-width: 200px;
 }
 
 /* Optional: Style for the r3f-stats */
