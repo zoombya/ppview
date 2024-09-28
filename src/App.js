@@ -1,3 +1,5 @@
+// src/App.js
+
 import React, { useState, useEffect } from 'react';
 import * as THREE from 'three';
 import FileDropZone from './components/FileDropZone';
@@ -8,7 +10,9 @@ import './styles.css';
 function App() {
   const [positions, setPositions] = useState([]);
   const [currentBoxSize, setCurrentBoxSize] = useState([
-    34.199520111084, 34.199520111084, 34.199520111084,
+    34.199520111084,
+    34.199520111084,
+    34.199520111084,
   ]);
   const [topData, setTopData] = useState(null);
 
@@ -18,11 +22,24 @@ function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [currentEnergy, setCurrentEnergy] = useState([]);
   const [totalConfigs, setTotalConfigs] = useState(0);
+
+  // State variables for toggling Patch legend visibility and loading
   const [showPatchLegend, setShowPatchLegend] = useState(false);
   const [filesDropped, setFilesDropped] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   const handleFilesReceived = async (files) => {
+    if (!files || files.length === 0) {
+      // No files selected or operation cancelled
+      return;
+    }
+
+    // Set filesDropped to true to hide the drop zone immediately
+    setFilesDropped(true);
+
+    // Set loading state to true before indexing
+    setIsLoading(true);
+
     const fileMap = new Map();
 
     // Store all files in fileMap, normalizing file names
@@ -40,6 +57,9 @@ function App() {
       setTopData(parsedTopData);
     } else {
       alert('Topology file (.top) is missing!');
+      // Reset filesDropped and isLoading
+      setFilesDropped(false);
+      setIsLoading(false);
       return;
     }
 
@@ -54,6 +74,9 @@ function App() {
       setTrajFile(trajectoryFile);
     } else {
       alert('Trajectory file (e.g., traj.dat) is missing!');
+      // Reset filesDropped and isLoading
+      setFilesDropped(false);
+      setIsLoading(false);
       return;
     }
 
@@ -61,8 +84,9 @@ function App() {
     const index = await buildTrajIndex(trajectoryFile);
     setConfigIndex(index);
     setTotalConfigs(index.length);
-    // Set filesDropped to true to hide the drop zone
-    setFilesDropped(true);
+
+    // Set loading state to false after indexing
+    setIsLoading(false);
   };
 
   // Load configuration when topData, trajFile, and configIndex are available
@@ -508,7 +532,7 @@ function App() {
       {positions.length > 0 && (
         <ParticleScene positions={positions} boxSize={currentBoxSize} />
       )}
-      {positions.length > 0 && (
+      {positions.length > 0 && !isLoading && (
         <div className="controls">
           <input
             type="range"
@@ -533,10 +557,16 @@ function App() {
         </div>
       )}
       {/* Conditionally render the PatchLegend component */}
-      {topData && showPatchLegend && (
+      {topData && showPatchLegend && !isLoading && (
         <PatchLegend
           patchIDs={topData.particleTypes.flatMap((type) => type.patches)}
         />
+      )}
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner" />
+          <p>Loading trajectory data...</p>
+        </div>
       )}
     </div>
   );
