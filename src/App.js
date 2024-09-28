@@ -19,6 +19,8 @@ function App() {
   const [currentEnergy, setCurrentEnergy] = useState([]);
   const [totalConfigs, setTotalConfigs] = useState(0);
   const [showPatchLegend, setShowPatchLegend] = useState(false);
+  const [filesDropped, setFilesDropped] = useState(false);
+
 
   const handleFilesReceived = async (files) => {
     const fileMap = new Map();
@@ -59,6 +61,8 @@ function App() {
     const index = await buildTrajIndex(trajectoryFile);
     setConfigIndex(index);
     setTotalConfigs(index.length);
+    // Set filesDropped to true to hide the drop zone
+    setFilesDropped(true);
   };
 
   // Load configuration when topData, trajFile, and configIndex are available
@@ -498,8 +502,9 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Patchy Particle Viewer</h1>
-      <FileDropZone onFilesReceived={handleFilesReceived} />
+      {!filesDropped && (
+        <FileDropZone onFilesReceived={handleFilesReceived} />
+      )}
       {positions.length > 0 && (
         <ParticleScene positions={positions} boxSize={currentBoxSize} />
       )}

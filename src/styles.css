@@ -1,57 +1,42 @@
-/* src/styles.css */
-
 /* Reset margins and paddings */
 html, body, #root, .App {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-  }
-  
-  /* Canvas container */
-  .canvas-container {
-    position: relative;
-    height: 100%;
-    width: 100%;
-  }
-  
-  /* Slider container */
-  .slider-container {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    text-align: center;
-  }
-  
-  .slider-container input[type='range'] {
-    width: 100%;
-  }
-  
-  /* Dropzone styles */
-  .dropzone {
-    border: 2px dashed #cccccc;
-    border-radius: 10px;
-    padding: 40px;
-    background-color: #ffffff;
-    opacity: 0.9;
-  }
-  
-  .dropzone p {
-    font-size: 18px;
-    color: #333333;
-    text-align: center;
-  }
-
-  /* src/styles.css */
-
-.App {
-  position: relative;
+  margin: 0;
+  padding: 0;
   height: 100%;
   width: 100%;
 }
 
+/* Ensure the canvas fills the available space */
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Make the dropzone fill the entire screen */
+.dropzone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed #cccccc;
+  border-radius: 10px;
+  background-color: #ffffff;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.dropzone p {
+  font-size: 24px;
+  color: #333333;
+  text-align: center;
+}
+
+/* Controls styling */
 .controls {
   position: absolute;
   bottom: 20px;
@@ -62,26 +47,41 @@ html, body, #root, .App {
   background-color: rgba(255, 255, 255, 0.8);
   padding: 10px;
   border-radius: 5px;
+  display: flex; /* Use flex layout */
+  flex-direction: column;
+  align-items: center;
 }
 
-.controls button {
-  margin: 0 10px;
+.controls input[type='range'] {
+  width: 100%;
+  margin-bottom: 10px;
 }
 
-.controls span {
-  margin: 0 10px;
+.controls .legend-toggle {
+  margin-top: 10px;
 }
 
-.controls div {
-  margin-top: 5px;
+.controls label.legend-toggle {
+  display: flex;
+  align-items: center;
 }
 
-/* Ensure the canvas fills the available space */
-canvas {
-  display: block;
+.controls label.legend-toggle input {
+  margin-right: 5px;
 }
 
-/* Add this CSS rule */
+/* Optional: Style for the PatchLegend component */
+.patch-legend {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* Optional: Style for the r3f-stats */
 .r3f-stats {
   position: absolute !important;
   top: 10px;
