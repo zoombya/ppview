@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import FileDropZone from './components/FileDropZone';
 import ParticleScene from './components/ParticleScene';
@@ -532,6 +532,59 @@ const parseLorenzoTopology = async (lines, fileMap) => {
     setCurrentConfigIndex(newIndex);
   };
 
+    // Function to shift positions along an axis
+    const shiftPositions = useCallback(
+      (axis, delta) => {
+        setPositions((prevPositions) => {
+          const shiftedPositions = prevPositions.map((pos) => {
+            const newPos = { ...pos };
+            newPos[axis] = pos[axis] + delta;
+            return newPos;
+          });
+          // Apply periodic boundaries
+          const adjustedPositions = applyPeriodicBoundary(
+            shiftedPositions,
+            currentBoxSize
+          );
+          return adjustedPositions;
+        });
+      },
+      [currentBoxSize]
+    );
+
+      // useEffect to handle key presses
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      switch (event.key) {
+        case 'q':
+          shiftPositions('x', 1);
+          break;
+        case 'a':
+          shiftPositions('x', -1);
+          break;
+        case 'w':
+          shiftPositions('y', 1);
+          break;
+        case 's':
+          shiftPositions('y', -1);
+          break;
+        case 'e':
+          shiftPositions('z', 1);
+          break;
+        case 'd':
+          shiftPositions('z', -1);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      // Cleanup event listener on unmount
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [shiftPositions]);
 
   return (
     <div className="App">
