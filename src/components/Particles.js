@@ -1,14 +1,18 @@
-import React, { useRef, useEffect, useMemo, useState } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
 import Patches from "./Patches";
 import { mutedParticleColors } from "../colors";
 
-function Particles({ positions, boxSize }) {
+function Particles({
+  positions,
+  boxSize,
+  selectedParticles,
+  setSelectedParticles,
+}) {
   const meshRef = useRef();
   const count = positions.length;
   const { gl, camera } = useThree(); // For raycasting
-  const [selectedParticle, setSelectedParticle] = useState(null); // Track selected particle
 
   // Create geometry and material once
   const geometry = useMemo(() => new THREE.SphereGeometry(0.5, 16, 16), []);
@@ -51,6 +55,9 @@ function Particles({ positions, boxSize }) {
       }
 
       mesh.instanceMatrix.needsUpdate = true;
+
+      // Set initial colors
+      mesh.instanceColor = new THREE.InstancedBufferAttribute(colors, 3);
     }
   }, [positions, boxSize, count, colors]);
 
@@ -67,10 +74,29 @@ function Particles({ positions, boxSize }) {
 
       if (intersects.length > 0) {
         const instanceId = intersects[0].instanceId;
-        setSelectedParticle(instanceId); // Set selected particle ID
+
+        setSelectedParticles((prevSelected) => {
+          if (event.ctrlKey || event.metaKey) {
+            // If Ctrl or Command key is pressed, toggle selection of the particle
+            if (prevSelected.includes(instanceId)) {
+              // Deselect particle
+              return prevSelected.filter((id) => id !== instanceId);
+            } else {
+              // Select particle
+              return [...prevSelected, instanceId];
+            }
+          } else {
+            // If Ctrl is not pressed, select only this particle
+            return [instanceId];
+          }
+        });
+
         console.log(`Selected Particle ID: ${instanceId}`); // Log the selected particle ID
       } else {
-        setSelectedParticle(null); // Reset if no particle is selected
+        if (!event.ctrlKey && !event.metaKey) {
+          // If Ctrl is not pressed, clear selection
+          setSelectedParticles([]);
+        }
       }
     };
 
@@ -78,9 +104,9 @@ function Particles({ positions, boxSize }) {
     return () => {
       gl.domElement.removeEventListener("click", handleClick);
     };
-  }, [gl, camera]);
+  }, [gl, camera, setSelectedParticles]);
 
-  // Apply selection effect to selected particle
+  // Apply selection effect to selected particles
   useEffect(() => {
     if (meshRef.current) {
       const mesh = meshRef.current;
@@ -89,19 +115,17 @@ function Particles({ positions, boxSize }) {
         const colorIndex = positions[i].typeIndex % mutedParticleColors.length;
         let typeColor = new THREE.Color(mutedParticleColors[colorIndex]);
 
-        if (i === selectedParticle) {
+        if (selectedParticles.includes(i)) {
           // Adjust the color to indicate selection
-          // For example, lighten the color
           typeColor = new THREE.Color("yellow");
-          //typeColor.offsetHSL(0, 0, 0.5); // Lighten the color
         }
 
-        mesh.setColorAt(i, new THREE.Color(typeColor));
+        mesh.setColorAt(i, typeColor);
       }
 
       mesh.instanceColor.needsUpdate = true;
     }
-  }, [selectedParticle, count, positions]);
+  }, [selectedParticles, count, positions]);
 
   // Group particles by type
   const particlesByType = useMemo(() => {

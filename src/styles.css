@@ -1,166 +1,200 @@
 /* Reset margins and paddings */
-html, body, #root, .App {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
+html,
+body,
+#root,
+.App {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
 }
 
 /* Ensure the canvas fills the available space */
 canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 /* Make the dropzone fill the entire screen */
 .dropzone {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border: 2px dashed #cccccc;
-  border-radius: 10px;
-  background-color: #ffffff;
-  opacity: 0.9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10; 
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px dashed #cccccc;
+    border-radius: 10px;
+    background-color: #ffffff;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
 }
 
 .dropzone p {
-  font-size: 24px;
-  color: #333333;
-  text-align: center;
+    font-size: 24px;
+    color: #333333;
+    text-align: center;
 }
 
 /* Controls styling */
 .controls {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  z-index: 10;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-  border-radius: 5px;
-  display: flex; /* Use flex layout */
-  flex-direction: column;
-  align-items: center;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    display: flex; /* Use flex layout */
+    flex-direction: column;
+    align-items: center;
 }
 
-.controls input[type='range'] {
-  width: 100%;
-  margin-bottom: 10px;
+.controls input[type="range"] {
+    width: 100%;
+    margin-bottom: 10px;
 }
 
 .controls .legend-toggle {
-  margin-top: 10px;
+    margin-top: 10px;
 }
 
 .controls label.legend-toggle {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 .controls label.legend-toggle input {
-  margin-right: 5px;
+    margin-right: 5px;
 }
 
 /* Particle Legend styles */
 .particle-legend {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 10;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-  border-radius: 5px;
-  max-width: 200px;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 200px;
 }
 
 .particle-legend h3 {
-  margin: 0 0 10px;
-  font-size: 16px;
+    margin: 0 0 10px;
+    font-size: 16px;
 }
 
 .particle-legend ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .particle-legend li {
-  display: flex;
-  align-items: center;
-  margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
 }
 
 .particle-legend .color-box {
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
-  border: 1px solid #000;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    border: 1px solid #000;
 }
 
 /* Adjust the PatchLegend position to avoid overlap */
 .patch-legend {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 10;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-  border-radius: 5px;
-  max-width: 200px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 200px;
 }
 
 /* Optional: Style for the r3f-stats */
 .r3f-stats {
-  position: absolute !important;
-  top: 10px;
-  right: 10px;
+    position: absolute !important;
+    top: 10px;
+    right: 10px;
 }
 
 /* Loading overlay styles */
 .loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.8);
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .loading-spinner {
-  border: 8px solid #f3f3f3; /* Light grey */
-  border-top: 8px solid #3498db; /* Blue */
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  animation: spin 2s linear infinite;
-  margin-bottom: 20px;
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+    margin-bottom: 20px;
 }
 
 .loading-overlay p {
-  font-size: 18px;
-  color: #333333;
+    font-size: 18px;
+    color: #333333;
 }
 
 /* Spinner animation */
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.selected-particles-display {
+    position: fixed;
+    bottom: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+    background-color: rgba(
+        255,
+        255,
+        255,
+        0.8
+    ); /* Semi-transparent background */
+    padding: 10px;
+    border-radius: 4px;
+    z-index: 1000; /* Ensure it appears above other elements */
+    max-height: 200px; /* Add a max height if needed */
+    overflow-y: auto; /* Enable scrolling if content exceeds max height */
+}
+
+.selected-particles-display h3 {
+    margin-top: 0;
+}
+
+.selected-particles-display ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.selected-particles-display li {
+    margin-bottom: 5px;
 }

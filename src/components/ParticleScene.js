@@ -8,7 +8,12 @@ import { OrbitControls, Environment, Stats } from "@react-three/drei";
 import Particles from "./Particles";
 import { EffectComposer, SSAO } from "@react-three/postprocessing";
 
-function ParticleScene({ positions, boxSize }) {
+function ParticleScene({
+  positions,
+  boxSize,
+  selectedParticles,
+  setSelectedParticles,
+}) {
   return (
     <Canvas camera={{ position: [0, 0, Math.max(...boxSize) * 1.5], fov: 75 }}>
       <OrbitControls />
@@ -21,7 +26,12 @@ function ParticleScene({ positions, boxSize }) {
         <meshBasicMaterial color="gray" wireframe />
       </mesh>
 
-      <Particles positions={positions} boxSize={boxSize} />
+      <Particles
+        positions={positions}
+        boxSize={boxSize}
+        selectedParticles={selectedParticles} // Pass as prop
+        setSelectedParticles={setSelectedParticles} // Pass as prop
+      />
 
       {/* Add SSAO for ambient occlusion effect */}
       <EffectComposer enableNormalPass>
