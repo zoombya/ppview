@@ -2,12 +2,11 @@
 
 // src/components/ParticleScene.js
 
-import React from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, Stats } from '@react-three/drei';
-import Particles from './Particles';
-import { EffectComposer, SSAO } from '@react-three/postprocessing';
-
+import React from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment, Stats } from "@react-three/drei";
+import Particles from "./Particles";
+import { EffectComposer, SSAO } from "@react-three/postprocessing";
 
 function ParticleScene({ positions, boxSize }) {
   return (
@@ -25,7 +24,7 @@ function ParticleScene({ positions, boxSize }) {
       <Particles positions={positions} boxSize={boxSize} />
 
       {/* Add SSAO for ambient occlusion effect */}
-      <EffectComposer disableNormalPass={false}>
+      <EffectComposer enableNormalPass>
         <SSAO
           samples={31} // Increase for smoother occlusion (performance cost)
           radius={0.5} // Adjust based on scene scale

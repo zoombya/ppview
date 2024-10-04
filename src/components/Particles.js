@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useMemo, useState } from 'react';
-import * as THREE from 'three';
-import { useThree } from '@react-three/fiber';
-import Patches from './Patches';
-import { mutedParticleColors } from '../colors';
+import React, { useRef, useEffect, useMemo, useState } from "react";
+import * as THREE from "three";
+import { useThree } from "@react-three/fiber";
+import Patches from "./Patches";
+import { mutedParticleColors } from "../colors";
 
 function Particles({ positions, boxSize }) {
   const meshRef = useRef();
@@ -13,18 +13,20 @@ function Particles({ positions, boxSize }) {
   // Create geometry and material once
   const geometry = useMemo(() => new THREE.SphereGeometry(0.5, 16, 16), []);
   const material = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: 'white', metalness: 0.5, roughness: 0.5 }),
-    []
+    () =>
+      new THREE.MeshStandardMaterial({
+        metalness: 0.5,
+        roughness: 0.5,
+      }),
+    [],
   );
 
   // Create colors array for the particles
   const colors = useMemo(() => {
-
     const colorArray = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const typeColor = new THREE.Color(mutedParticleColors[positions[i].typeIndex % mutedParticleColors.length]);
-      //const typeColor = new THREE.Color(`hsl(${(positions[i].typeIndex * 60) % 360}, 100%, 50%)`);
-      //console.log("typeIndex",positions[i].typeIndex );
+      const colorIndex = positions[i].typeIndex % mutedParticleColors.length;
+      const typeColor = new THREE.Color(mutedParticleColors[colorIndex]);
       colorArray.set([typeColor.r, typeColor.g, typeColor.b], i * 3);
     }
     return colorArray;
@@ -42,18 +44,13 @@ function Particles({ positions, boxSize }) {
         dummy.position.set(
           pos.x - boxSize[0] / 2,
           pos.y - boxSize[1] / 2,
-          pos.z - boxSize[2] / 2
+          pos.z - boxSize[2] / 2,
         );
         dummy.updateMatrix();
         mesh.setMatrixAt(i, dummy.matrix);
       }
 
       mesh.instanceMatrix.needsUpdate = true;
-
-      // Assign or update the instanceColor attribute
-      if (!mesh.geometry.attributes.instanceColor) {
-        mesh.geometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(colors, 3));
-      }
     }
   }, [positions, boxSize, count, colors]);
 
@@ -77,29 +74,29 @@ function Particles({ positions, boxSize }) {
       }
     };
 
-    gl.domElement.addEventListener('click', handleClick);
+    gl.domElement.addEventListener("click", handleClick);
     return () => {
-      gl.domElement.removeEventListener('click', handleClick);
+      gl.domElement.removeEventListener("click", handleClick);
     };
   }, [gl, camera]);
 
-  // Apply glow effect to selected particle
+  // Apply selection effect to selected particle
   useEffect(() => {
     if (meshRef.current) {
       const mesh = meshRef.current;
 
-      if (selectedParticle !== null) {
-        // Change the color of the selected particle to yellow
-        const selectedColor = new THREE.Color('yellow');
-        mesh.setColorAt(selectedParticle, selectedColor);
-      }
-
-      // Reset color for non-selected particles
       for (let i = 0; i < count; i++) {
-        if (i !== selectedParticle) {
-          const typeColor = new THREE.Color(`hsl(${(positions[i].typeIndex * 60) % 360}, 100%, 50%)`);
-          mesh.setColorAt(i, typeColor);
+        const colorIndex = positions[i].typeIndex % mutedParticleColors.length;
+        let typeColor = new THREE.Color(mutedParticleColors[colorIndex]);
+
+        if (i === selectedParticle) {
+          // Adjust the color to indicate selection
+          // For example, lighten the color
+          typeColor = new THREE.Color("yellow");
+          //typeColor.offsetHSL(0, 0, 0.5); // Lighten the color
         }
+
+        mesh.setColorAt(i, new THREE.Color(typeColor));
       }
 
       mesh.instanceColor.needsUpdate = true;
@@ -125,21 +122,26 @@ function Particles({ positions, boxSize }) {
         {/* This instancedMesh renders the particles */}
       </instancedMesh>
 
-      {Array.from(particlesByType.values()).map(({ particleType, particles }, idx) => {
-        if (particleType.patchPositions && particleType.patchPositions.length > 0) {
-          return (
-            <Patches
-              key={idx}
-              particles={particles}
-              patchPositions={particleType.patchPositions}
-              patchIDs={particleType.patches}
-              boxSize={boxSize}
-            />
-          );
-        } else {
-          return null;
-        }
-      })}
+      {Array.from(particlesByType.values()).map(
+        ({ particleType, particles }, idx) => {
+          if (
+            particleType.patchPositions &&
+            particleType.patchPositions.length > 0
+          ) {
+            return (
+              <Patches
+                key={idx}
+                particles={particles}
+                patchPositions={particleType.patchPositions}
+                patchIDs={particleType.patches}
+                boxSize={boxSize}
+              />
+            );
+          } else {
+            return null;
+          }
+        },
+      )}
     </>
   );
 }
