@@ -9,6 +9,7 @@ function Particles({
   boxSize,
   selectedParticles,
   setSelectedParticles,
+  onParticleDoubleClick, // Add this prop
 }) {
   const meshRef = useRef();
   const count = positions.length;
@@ -61,7 +62,7 @@ function Particles({
     }
   }, [positions, boxSize, count, colors]);
 
-  // Raycaster for detecting clicks
+  // Raycaster for detecting clicks and double-clicks
   useEffect(() => {
     const handleClick = (event) => {
       const raycaster = new THREE.Raycaster();
@@ -90,8 +91,6 @@ function Particles({
             return [instanceId];
           }
         });
-
-        console.log(`Selected Particle ID: ${instanceId}`); // Log the selected particle ID
       } else {
         if (!event.ctrlKey && !event.metaKey) {
           // If Ctrl is not pressed, clear selection
@@ -100,11 +99,47 @@ function Particles({
       }
     };
 
+    const handleDoubleClick = (event) => {
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObject(meshRef.current);
+
+      if (intersects.length > 0) {
+        const instanceId = intersects[0].instanceId;
+        const particle = positions[instanceId];
+
+        // Calculate world position of the particle
+        const particlePosition = new THREE.Vector3(
+          particle.x - boxSize[0] / 2,
+          particle.y - boxSize[1] / 2,
+          particle.z - boxSize[2] / 2,
+        );
+
+        // Call the callback function
+        if (onParticleDoubleClick) {
+          onParticleDoubleClick(particlePosition);
+        }
+      }
+    };
+
     gl.domElement.addEventListener("click", handleClick);
+    gl.domElement.addEventListener("dblclick", handleDoubleClick);
     return () => {
       gl.domElement.removeEventListener("click", handleClick);
+      gl.domElement.removeEventListener("dblclick", handleDoubleClick);
     };
-  }, [gl, camera, setSelectedParticles]);
+  }, [
+    gl,
+    camera,
+    setSelectedParticles,
+    positions,
+    boxSize,
+    onParticleDoubleClick,
+  ]);
 
   // Apply selection effect to selected particles
   useEffect(() => {
